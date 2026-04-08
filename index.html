@@ -43,7 +43,7 @@
                 transcriptDiv.innerText = "Duyulan: " + lastResult;
 
                 if (lastResult.includes("hey bex") && !speaking) {
-                    const command = lastResult.replace("hey bex", "").trim();
+                    const command = lastResult.replace("heybex", "").trim();
                     askGemini(command || "merhaba");
                 }
             };
