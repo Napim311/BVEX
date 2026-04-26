@@ -1,528 +1,804 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BVEX AI ASİSTAN | Sesli & Yazılı Sohbet</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BVEX — AI Core</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bvex:#b47cff;
+  --bvex2:#7c3aff;
+  --bvex3:#e040fb;
+  --gold:#ffd700;
+  --bg:#08050f;
+  --bg2:#0f0a1a;
+  --bg3:#160f25;
+  --text:#f0e8ff;
+  --muted:#7a6a9a;
+  --success:#39ff7a;
+  --danger:#ff3a6e;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;display:flex;align-items:center;justify-content:center}
 
-        body {
-            background: radial-gradient(circle at 20% 30%, #0a0a2a, #000000);
-            color: #00f2ff;
-            font-family: 'Segoe UI', 'Poppins', 'Orbitron', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+/* STARS */
+.stars{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite var(--del,0s)}
+@keyframes twinkle{0%,100%{opacity:.1;transform:scale(1)}50%{opacity:.8;transform:scale(1.5)}}
 
-        /* Ana Kart */
-        .container {
-            width: 100%;
-            max-width: 700px;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            border: 1px solid rgba(0, 212, 255, 0.4);
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3), inset 0 0 20px rgba(0,212,255,0.1);
-            padding: 25px 20px 35px;
-            transition: all 0.3s;
-        }
+/* NOISE */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
 
-        /* Başlık */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            font-size: 2.2rem;
-            letter-spacing: 3px;
-            text-shadow: 0 0 8px #00d4ff;
-            background: linear-gradient(135deg, #00d4ff, #a0f0ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .badge {
-            font-size: 0.75rem;
-            background: #00d4ff20;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 40px;
-            border: 1px solid #00d4ff;
-            margin-top: 8px;
-        }
+/* ====== MENU SCREEN ====== */
+#menu-screen{
+  position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(100,40,200,.18) 0%,var(--bg) 70%);
+}
+.menu-inner{text-align:center;position:relative;z-index:1}
 
-        /* Sohbet Kutusu */
-        .chat-area {
-            background: #00000055;
-            border-radius: 32px;
-            padding: 20px;
-            min-height: 280px;
-            max-height: 380px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid #00d4ff30;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-        }
-        .message {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        .user-msg {
-            align-items: flex-end;
-        }
-        .ai-msg {
-            align-items: flex-start;
-        }
-        .bubble {
-            max-width: 85%;
-            padding: 12px 18px;
-            border-radius: 26px;
-            font-size: 1rem;
-            line-height: 1.4;
-            word-wrap: break-word;
-        }
-        .user-bubble {
-            background: linear-gradient(135deg, #00d4ff30, #0077aa30);
-            border: 1px solid #00d4ff;
-            color: #eef5ff;
-            border-bottom-right-radius: 6px;
-        }
-        .ai-bubble {
-            background: #0a1a2ae0;
-            border: 1px solid #00d4ff80;
-            color: #c0f0ff;
-            border-bottom-left-radius: 6px;
-        }
-        .msg-label {
-            font-size: 0.7rem;
-            margin-bottom: 4px;
-            margin-left: 8px;
-            margin-right: 8px;
-            opacity: 0.7;
-            letter-spacing: 1px;
-        }
+.bvex-logo{
+  font-size:clamp(56px,12vw,96px);font-weight:800;letter-spacing:12px;
+  background:linear-gradient(135deg,#b47cff,#7c3aff,#e040fb,#b47cff);
+  background-size:300% 300%;animation:logoShift 4s ease infinite;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:block;margin-bottom:8px;
+}
+@keyframes logoShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 
-        /* Kontrol butonları */
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .action-btn {
-            background: rgba(0, 0, 0, 0.7);
-            border: 2px solid #00d4ff;
-            color: #00d4ff;
-            font-size: 1rem;
-            padding: 12px 20px;
-            border-radius: 60px;
-            cursor: pointer;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-family: monospace;
-        }
-        .action-btn:active { transform: scale(0.96); }
-        .action-btn:hover { background: #00d4ff20; box-shadow: 0 0 12px #00d4ff; }
-        .mic-btn {
-            background: #00d4ff20;
-            border-color: #00ffff;
-            box-shadow: 0 0 8px #00d4ff;
-        }
-        .listening {
-            animation: pulse 1.2s infinite;
-            background: #ff005530;
-            border-color: #ff66cc;
-            box-shadow: 0 0 20px #ff66cc;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1;}
-            50% { transform: scale(1.05); opacity: 0.9;}
-            100% { transform: scale(1);}
-        }
+.bvex-tagline{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;
+  color:var(--muted);margin-bottom:60px;
+}
 
-        /* Metin giriş alanı */
-        .input-area {
-            display: flex;
-            gap: 12px;
-            background: #000000aa;
-            border-radius: 60px;
-            padding: 5px;
-            border: 1px solid #00d4ff60;
-        }
-        #textInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 12px 18px;
-            color: #00f2ff;
-            font-size: 1rem;
-            outline: none;
-            font-family: monospace;
-        }
-        #textInput::placeholder { color: #00d4ff80; }
-        .send-btn {
-            background: #00d4ff30;
-            border: none;
-            border-radius: 50px;
-            padding: 0 22px;
-            color: #00d4ff;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .status {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #aaffff;
-            text-shadow: 0 0 4px black;
-        }
-        .clear-btn {
-            background: none;
-            border: 1px solid #ff3366;
-            color: #ff88aa;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .footer {
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 18px;
-            opacity: 0.6;
-        }
-    </style>
+/* Orb */
+.menu-orb{
+  width:160px;height:160px;border-radius:50%;margin:0 auto 50px;
+  position:relative;cursor:default;
+}
+.orb-core{
+  width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#d4aaff,#7c3aff 45%,#3a1a6e 80%);
+  box-shadow:0 0 60px rgba(180,124,255,.5),0 0 120px rgba(124,58,255,.3),inset 0 0 40px rgba(255,255,255,.1);
+  animation:orbPulse 3s ease-in-out infinite;
+}
+@keyframes orbPulse{0%,100%{transform:scale(1);box-shadow:0 0 60px rgba(180,124,255,.5),0 0 120px rgba(124,58,255,.3)}50%{transform:scale(1.04);box-shadow:0 0 80px rgba(180,124,255,.7),0 0 160px rgba(124,58,255,.5)}}
+.orb-ring{
+  position:absolute;inset:-12px;border-radius:50%;
+  border:1.5px solid rgba(180,124,255,.25);
+  animation:spin 8s linear infinite;
+}
+.orb-ring::before{
+  content:'';position:absolute;top:50%;left:-4px;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;background:var(--bvex);
+  box-shadow:0 0 10px var(--bvex);
+}
+.orb-ring2{
+  position:absolute;inset:-28px;border-radius:50%;
+  border:1px solid rgba(180,124,255,.1);
+  animation:spin 14s linear infinite reverse;
+}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.menu-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:2px}
+.menu-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:40px}
+
+.menu-btns{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.menu-btn{
+  padding:16px 36px;border-radius:12px;border:1.5px solid rgba(180,124,255,.35);
+  background:rgba(180,124,255,.08);color:var(--text);
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;
+  cursor:pointer;transition:all .25s ease;display:flex;flex-direction:column;align-items:center;gap:8px;
+  min-width:160px;
+}
+.menu-btn .btn-icon{font-size:32px;display:block}
+.menu-btn:hover{
+  border-color:var(--bvex);background:rgba(180,124,255,.18);
+  box-shadow:0 0 30px rgba(180,124,255,.3);transform:translateY(-3px);
+}
+.menu-btn.voice-btn:hover{border-color:var(--bvex3);box-shadow:0 0 30px rgba(224,64,251,.3)}
+
+/* ====== MAIN APP ====== */
+#app{position:fixed;inset:0;z-index:10;display:none;flex-direction:column}
+
+/* TOP BAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;border-bottom:1px solid rgba(180,124,255,.1);
+  background:rgba(8,5,15,.8);backdrop-filter:blur(12px);flex-shrink:0;
+}
+.topbar-logo{
+  font-size:22px;font-weight:800;letter-spacing:6px;
+  background:linear-gradient(135deg,var(--bvex),var(--bvex2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.topbar-mode{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--muted);display:flex;align-items:center;gap:8px;
+}
+.mode-dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 6px var(--success);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.back-btn{
+  background:none;border:1px solid rgba(180,124,255,.25);color:var(--muted);
+  padding:6px 14px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:2px;cursor:pointer;transition:all .2s;
+}
+.back-btn:hover{border-color:var(--bvex);color:var(--bvex)}
+
+/* ====== VOICE MODE ====== */
+#voice-mode{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;padding:24px;position:relative}
+
+.voice-orb-wrap{position:relative;width:220px;height:220px}
+.voice-orb{
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#d4aaff,#7c3aff 45%,#2a0a5e 80%);
+  box-shadow:0 0 80px rgba(180,124,255,.4),0 0 160px rgba(124,58,255,.2);
+  position:relative;z-index:2;transition:all .3s ease;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.voice-orb.listening{
+  box-shadow:0 0 100px rgba(180,124,255,.8),0 0 200px rgba(224,64,251,.5);
+  animation:listenPulse .8s ease-in-out infinite;
+}
+.voice-orb.speaking{
+  box-shadow:0 0 100px rgba(57,255,122,.6),0 0 180px rgba(57,255,122,.3);
+  animation:speakPulse .5s ease-in-out infinite;
+}
+@keyframes listenPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes speakPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.orb-icon{font-size:60px;position:relative;z-index:1;user-select:none}
+.voice-rings{position:absolute;inset:0;border-radius:50%}
+.vring{
+  position:absolute;border-radius:50%;border:1.5px solid rgba(180,124,255,.2);
+  transition:all .3s;
+}
+.vring1{inset:-20px;animation:ringFloat 3s ease-in-out infinite}
+.vring2{inset:-40px;animation:ringFloat 3s ease-in-out infinite .4s;border-color:rgba(224,64,251,.15)}
+.vring3{inset:-60px;animation:ringFloat 3s ease-in-out infinite .8s;border-color:rgba(180,124,255,.08)}
+.listening .vring{border-color:rgba(180,124,255,.5);animation:ringExpand .8s ease-in-out infinite}
+.listening .vring1{animation-delay:0s}
+.listening .vring2{animation-delay:.2s}
+.listening .vring3{animation-delay:.4s}
+@keyframes ringFloat{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.02);opacity:1}}
+@keyframes ringExpand{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.15);opacity:0}}
+
+/* Waveform */
+.waveform{display:flex;align-items:center;gap:3px;height:48px}
+.wave-bar{
+  width:4px;border-radius:4px;background:var(--bvex);
+  height:6px;transition:height .1s ease;opacity:.6;
+}
+.waveform.active .wave-bar{animation:waveAnim var(--spd,.4s) ease-in-out infinite var(--del,0s);opacity:1}
+@keyframes waveAnim{0%,100%{height:6px}50%{height:var(--h,30px)}}
+
+.voice-status{
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:3px;
+  color:var(--muted);text-align:center;min-height:20px;transition:color .3s;
+}
+.voice-status.listening{color:var(--bvex);animation:statusPulse 1.5s infinite}
+.voice-status.speaking{color:var(--success)}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Voice transcript area */
+.voice-transcript{
+  width:100%;max-width:600px;max-height:160px;overflow-y:auto;
+  background:rgba(180,124,255,.05);border:1px solid rgba(180,124,255,.12);
+  border-radius:12px;padding:16px 20px;font-size:14px;line-height:1.7;
+  display:none;
+}
+.voice-transcript::-webkit-scrollbar{width:3px}
+.voice-transcript::-webkit-scrollbar-thumb{background:rgba(180,124,255,.3);border-radius:2px}
+
+.wake-hint{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:rgba(180,124,255,.4);letter-spacing:2px;text-align:center;
+  margin-top:10px;
+}
+.wake-hint span{color:var(--bvex);font-weight:700}
+
+.mic-btn{
+  padding:14px 32px;border-radius:50px;border:1.5px solid rgba(180,124,255,.4);
+  background:rgba(180,124,255,.1);color:var(--text);
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;
+  cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:10px;
+}
+.mic-btn:hover{border-color:var(--bvex);box-shadow:0 0 20px rgba(180,124,255,.3)}
+.mic-btn.active{border-color:var(--bvex3);background:rgba(224,64,251,.15);box-shadow:0 0 25px rgba(224,64,251,.4);color:var(--bvex3)}
+
+/* ====== TEXT MODE ====== */
+#text-mode{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.chat-area::-webkit-scrollbar{width:4px}
+.chat-area::-webkit-scrollbar-thumb{background:rgba(180,124,255,.25);border-radius:2px}
+
+.msg{display:flex;gap:12px;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.msg-av{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;
+}
+.msg-av.bvex-av{
+  background:linear-gradient(135deg,rgba(180,124,255,.2),rgba(124,58,255,.2));
+  border:1.5px solid rgba(180,124,255,.5);color:var(--bvex);
+}
+.msg-av.user-av{
+  background:rgba(255,215,0,.08);border:1.5px solid rgba(255,215,0,.3);color:var(--gold);
+}
+.msg-body{max-width:72%;display:flex;flex-direction:column;gap:4px}
+.msg.user .msg-body{align-items:flex-end}
+.msg-who{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)}
+.msg.bvex-msg .msg-who{color:var(--bvex)}
+.msg.user .msg-who{color:var(--gold)}
+.bubble{
+  padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.7;
+}
+.bvex-msg .bubble{
+  background:rgba(180,124,255,.07);border:1px solid rgba(180,124,255,.18);
+  border-left:3px solid var(--bvex);
+}
+.user .bubble{
+  background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);
+  border-right:3px solid var(--gold);
+}
+.bubble strong{color:var(--bvex)}
+.bubble code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,0,0,.5);border:1px solid rgba(180,124,255,.2);padding:2px 6px;border-radius:4px;color:var(--success)}
+.bubble pre{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,0,0,.6);border:1px solid rgba(180,124,255,.15);border-left:3px solid var(--success);padding:12px;border-radius:6px;margin-top:8px;overflow-x:auto;color:var(--success);white-space:pre-wrap;word-break:break-word}
+.bubble h3{font-size:13px;color:var(--bvex);margin-bottom:6px;letter-spacing:1px}
+.bubble ul{margin-left:16px;margin-top:4px}
+.bubble li{margin-bottom:3px}
+
+.typing-row{display:flex;gap:12px;align-items:flex-start;display:none}
+.typing-dots{display:flex;gap:4px;align-items:center;padding:14px 16px;background:rgba(180,124,255,.07);border:1px solid rgba(180,124,255,.18);border-left:3px solid var(--bvex);border-radius:12px}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--bvex);animation:tdot 1.2s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+
+/* INPUT */
+.input-bar{
+  padding:16px 20px;border-top:1px solid rgba(180,124,255,.1);
+  background:rgba(8,5,15,.9);backdrop-filter:blur(12px);flex-shrink:0;
+}
+.input-inner{
+  display:flex;align-items:flex-end;gap:12px;
+  background:rgba(180,124,255,.06);border:1.5px solid rgba(180,124,255,.2);
+  border-radius:12px;padding:12px 16px;transition:border-color .2s,box-shadow .2s;
+}
+.input-inner:focus-within{border-color:var(--bvex);box-shadow:0 0 20px rgba(180,124,255,.2)}
+#txt-input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-family:'Syne',sans-serif;font-size:14px;
+  resize:none;min-height:22px;max-height:120px;line-height:1.6;
+}
+#txt-input::placeholder{color:rgba(122,106,154,.4);font-style:italic}
+.send-btn{
+  padding:8px 18px;border-radius:8px;border:1.5px solid var(--bvex);
+  background:rgba(180,124,255,.15);color:var(--bvex);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.send-btn:hover{background:rgba(180,124,255,.3);box-shadow:0 0 15px rgba(180,124,255,.3)}
+.send-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* Hidden */
+.hidden{display:none!important}
+</style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>⚡ BVEX AI ⚡</h1>
-        <div class="badge">🎙️ Sesli + Yazılı | Gemini 1.5 Flash</div>
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- ===== MENU ===== -->
+<div id="menu-screen">
+  <div class="menu-inner">
+    <span class="bvex-logo">BVEX</span>
+    <div class="bvex-tagline">BEYOND VOCAL EXPERIENCE // AI CORE v1.0</div>
+
+    <div class="menu-orb">
+      <div class="orb-core"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring2"></div>
     </div>
 
-    <!-- Sohbet geçmişi -->
-    <div class="chat-area" id="chatArea">
-        <div class="message ai-msg">
-            <div class="msg-label">🤖 BVEX AI</div>
-            <div class="bubble ai-bubble">Merhaba! Ben BVEX. Sesli komut için mikrofon butonuna bas ya da yazı yaz. Sana nasıl yardımcı olabilirim? 🔮</div>
+    <div class="menu-title">MOD SEÇ</div>
+    <div class="menu-sub">// Nasıl konuşmak istiyorsun?</div>
+    <div class="menu-btns">
+      <button class="menu-btn voice-btn" onclick="startMode('voice')">
+        <span class="btn-icon">🎙</span>
+        SESLİ SOHBET
+      </button>
+      <button class="menu-btn" onclick="startMode('text')">
+        <span class="btn-icon">⌨</span>
+        YAZILI SOHBET
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">BVEX</div>
+    <div class="topbar-mode">
+      <div class="mode-dot" id="mode-dot"></div>
+      <span id="mode-label">SESLİ MOD</span>
+    </div>
+    <button class="back-btn" onclick="goMenu()">← MENÜ</button>
+  </div>
+
+  <!-- VOICE MODE -->
+  <div id="voice-mode" class="hidden">
+    <div class="voice-orb-wrap" id="orb-wrap">
+      <div class="voice-orb" id="voice-orb" onclick="toggleMic()">
+        <div class="voice-rings">
+          <div class="vring vring1"></div>
+          <div class="vring vring2"></div>
+          <div class="vring vring3"></div>
         </div>
+        <div class="orb-icon" id="orb-icon">◉</div>
+      </div>
     </div>
 
-    <!-- Butonlar -->
-    <div class="controls">
-        <button id="micBtn" class="action-btn mic-btn">🎤 SESLİ KONUŞ</button>
-        <button id="stopSpeechBtn" class="action-btn">🔇 SİNDİR KONUŞMA</button>
-        <button id="clearChatBtn" class="action-btn clear-btn" style="background:#000;">🗑️ TEMİZLE</button>
+    <div class="waveform" id="waveform">
+      <!-- bars injected by JS -->
     </div>
 
-    <!-- Yazı ile gönderme -->
-    <div class="input-area">
-        <input type="text" id="textInput" placeholder="Mesajını yaz... (Enter ile gönder)" autocomplete="off">
-        <button id="sendTextBtn" class="send-btn">GÖNDER ✨</button>
-    </div>
+    <div class="voice-status" id="voice-status">UYKU MODUNDA</div>
+    <div class="wake-hint">"<span>Hey Bvex</span>" de — seni dinleyeyim</div>
 
-    <div id="statusMsg" class="status">✅ Hazır | Butona bas veya yaz</div>
-    <div class="footer">🎧 BVEX AI - Yapay Zeka Asistanı | Ses tanıma + sentez</div>
+    <div class="voice-transcript" id="voice-transcript"></div>
+
+    <button class="mic-btn" id="mic-btn" onclick="toggleMic()">
+      <span id="mic-btn-icon">🎙</span>
+      <span id="mic-btn-text">MİKROFONU BAŞLAT</span>
+    </button>
+  </div>
+
+  <!-- TEXT MODE -->
+  <div id="text-mode" class="hidden">
+    <div class="chat-area" id="chat-area">
+      <div class="msg bvex-msg">
+        <div class="msg-av bvex-av">BVX</div>
+        <div class="msg-body">
+          <div class="msg-who">// BVEX HAZIR</div>
+          <div class="bubble">
+            Selamlar. Ben <strong>BVEX</strong> — ne istersen soabilirsin.<br>
+            Kod, matematik, felsefe, espri... hepsini hallederim. Buyur. 🟣
+          </div>
+        </div>
+      </div>
+      <div class="typing-row" id="typing-row">
+        <div class="msg-av bvex-av">BVX</div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    <div class="input-bar">
+      <div class="input-inner">
+        <textarea id="txt-input" rows="1" placeholder="Bir şeyler yaz..."></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendText()">GÖNDER →</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    // ---------- KONFİG ----------
-    const API_KEY = "AIzaSyAYDRqZEaPk5DMmPu57EWN04g4orvQ8BBo";
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-    
-    // DOM elementleri
-    const micBtn = document.getElementById('micBtn');
-    const stopSpeechBtn = document.getElementById('stopSpeechBtn');
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    const textInput = document.getElementById('textInput');
-    const sendTextBtn = document.getElementById('sendTextBtn');
-    const chatArea = document.getElementById('chatArea');
-    const statusDiv = document.getElementById('statusMsg');
+// ========== STARS ==========
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const el=document.createElement('div');
+    el.className='star';
+    el.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--del:${Math.random()*5}s;opacity:${Math.random()*.7+.1}`;
+    s.appendChild(el);
+  }
+})();
 
-    // Ses sentezi kontrolü
-    let currentUtterance = null;
-    let isSpeaking = false;
+// ========== WAVEFORM ==========
+const wf=document.getElementById('waveform');
+const heights=[8,14,22,30,38,30,22,14,8,14,22,30,22,14,8];
+heights.forEach((h,i)=>{
+  const b=document.createElement('div');
+  b.className='wave-bar';
+  b.style.cssText=`--h:${h}px;--spd:${.3+Math.random()*.3}s;--del:${i*.04}s`;
+  wf.appendChild(b);
+});
 
-    // Konuşma tanıma
-    let recognition = null;
-    let isListening = false;
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+// ========== MODE ==========
+let currentMode='';
+let voices=[];
+let bvexVoice=null;
 
-    // ---------- YARDIMCI FONKSİYONLAR ----------
-    function updateStatus(text, isError = false) {
-        statusDiv.innerHTML = text;
-        statusDiv.style.color = isError ? "#ff8888" : "#aaffff";
-        setTimeout(() => {
-            if (!isError) statusDiv.style.color = "#aaffff";
-        }, 2000);
-    }
+function startMode(mode){
+  currentMode=mode;
+  document.getElementById('menu-screen').style.display='none';
+  const app=document.getElementById('app');
+  app.style.display='flex';
 
-    // Sohbete mesaj ekle (kullanıcı / AI)
-    function addMessage(text, isUser = true) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${isUser ? 'user-msg' : 'ai-msg'}`;
-        const label = document.createElement('div');
-        label.className = 'msg-label';
-        label.innerText = isUser ? '👤 SEN' : '🤖 BVEX AI';
-        const bubble = document.createElement('div');
-        bubble.className = `bubble ${isUser ? 'user-bubble' : 'ai-bubble'}`;
-        bubble.innerText = text;
-        msgDiv.appendChild(label);
-        msgDiv.appendChild(bubble);
-        chatArea.appendChild(msgDiv);
-        // Otomatik kaydırma
-        chatArea.scrollTop = chatArea.scrollHeight;
-        return msgDiv;
-    }
+  if(mode==='voice'){
+    document.getElementById('mode-label').textContent='SESLİ MOD';
+    document.getElementById('voice-mode').classList.remove('hidden');
+    initVoices();
+    startWakeWordListening();
+  } else {
+    document.getElementById('mode-label').textContent='YAZILI MOD';
+    document.getElementById('text-mode').classList.remove('hidden');
+  }
+}
 
-    // Sohbeti temizle (ilk mesajı koru)
-    function clearChat() {
-        chatArea.innerHTML = '';
-        addMessage("Merhaba! Ben BVEX. Sesli komut için mikrofon butonuna bas ya da yazı yaz. Sana nasıl yardımcı olabilirim? 🔮", false);
-        updateStatus("🧹 Sohbet temizlendi.");
-    }
+function goMenu(){
+  stopAll();
+  document.getElementById('app').style.display='none';
+  document.getElementById('menu-screen').style.display='flex';
+  document.getElementById('voice-mode').classList.add('hidden');
+  document.getElementById('text-mode').classList.add('hidden');
+  currentMode='';
+  conversationHistory=[];
+}
 
-    // Gemini AI çağrısı
-    async function getGeminiResponse(prompt) {
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.8, maxOutputTokens: 600 }
-                })
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
-            } else {
-                return "BVEX: Yanıt üretirken bir tuhaflık oldu, tekrar dener misin?";
-            }
-        } catch (err) {
-            console.error(err);
-            return "⚠️ Bağlantı hatası! API'ye ulaşılamıyor. Lütfen internetini kontrol et.";
+// ========== VOICES ==========
+function initVoices(){
+  if(window.speechSynthesis){
+    const load=()=>{
+      voices=window.speechSynthesis.getVoices();
+      bvexVoice=voices.find(v=>v.lang.startsWith('tr'))||
+                voices.find(v=>v.lang.startsWith('en'))||
+                voices[0]||null;
+    };
+    load();
+    window.speechSynthesis.onvoiceschanged=load;
+  }
+}
+
+// ========== SPEECH SYNTHESIS ==========
+function speak(text, onEnd){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean=text.replace(/[*`#_~]/g,'').replace(/<[^>]+>/g,'').substring(0,500);
+  const utt=new SpeechSynthesisUtterance(clean);
+  if(bvexVoice) utt.voice=bvexVoice;
+  utt.lang=bvexVoice?.lang||'tr-TR';
+  utt.rate=1.0;
+  utt.pitch=0.9;
+  utt.volume=1;
+  utt.onend=()=>{
+    setOrbState('idle');
+    if(onEnd) onEnd();
+  };
+  utt.onerror=()=>{ setOrbState('idle'); if(onEnd) onEnd(); };
+  setOrbState('speaking');
+  window.speechSynthesis.speak(utt);
+}
+
+// ========== ORB STATES ==========
+function setOrbState(state){
+  const orb=document.getElementById('voice-orb');
+  const wf=document.getElementById('waveform');
+  const st=document.getElementById('voice-status');
+  orb.className='voice-orb';
+  wf.className='waveform';
+
+  if(state==='idle'){
+    st.textContent='UYKU MODUNDA';
+    st.className='voice-status';
+    document.getElementById('orb-icon').textContent='◉';
+  } else if(state==='wake'){
+    orb.classList.add('listening');
+    wf.classList.add('active');
+    st.textContent='DİNLİYORUM...';
+    st.className='voice-status listening';
+    document.getElementById('orb-icon').textContent='◎';
+  } else if(state==='thinking'){
+    st.textContent='DÜŞÜNÜYORUM...';
+    st.className='voice-status';
+    document.getElementById('orb-icon').textContent='◌';
+  } else if(state==='speaking'){
+    orb.classList.add('speaking');
+    st.textContent='KONUŞUYORUM...';
+    st.className='voice-status speaking';
+    document.getElementById('orb-icon').textContent='◉';
+  }
+}
+
+// ========== SPEECH RECOGNITION — TEK NESNE ==========
+// Mikrofon izni SADECE BİR KEZ alınır, recognition nesnesi hiç yeniden oluşturulmaz.
+
+let SR_CLASS = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let rec = null;          // tek recognition nesnesi
+let micActive = false;
+let phase = 'idle';      // 'idle' | 'wake' | 'command'
+let cmdText = '';
+let micStream = null;    // MediaStream — iznin canlı kalmasını sağlar
+
+// Wake kelimelerinin olası yazılışları
+const WAKE_WORDS = ['hey bvex','hey bveks','hey b vex','hey pvex','hey bwex',
+                    'merhaba bvex','hey bvec','hey bvak','hey bvex'];
+
+function isWakeWord(txt){
+  const t = txt.toLowerCase();
+  return WAKE_WORDS.some(w => t.includes(w));
+}
+
+function buildRec(){
+  if(!SR_CLASS) return null;
+  const r = new SR_CLASS();
+  r.lang = 'tr-TR';
+  r.continuous = true;       // HER ZAMAN continuous — izin bir kez
+  r.interimResults = true;
+  r.maxAlternatives = 3;
+  return r;
+}
+
+function attachHandlers(){
+  if(!rec) return;
+
+  rec.onresult = function(e){
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const res = e.results[i];
+      const allText = Array.from({length: res.length}, (_,j) => res[j].transcript).join(' ');
+
+      if(phase === 'wake'){
+        if(isWakeWord(allText)){
+          phase = 'command';
+          cmdText = '';
+          setOrbState('wake');
+          showTranscript('');
         }
-    }
+      } else if(phase === 'command'){
+        // Wake kelimesini transcript'tan çıkar
+        let clean = res[0].transcript;
+        WAKE_WORDS.forEach(w => { clean = clean.toLowerCase().replace(w,'').trim(); });
 
-    // Sesli yanıt verme (konuşma)
-    function speakText(text) {
-        if (currentUtterance) {
-            window.speechSynthesis.cancel();
-            currentUtterance = null;
-        }
-        // Metin temizliği (işaretleri kaldır)
-        const cleanText = text.replace(/[*#_`]/g, '').replace(/\n/g, ' ');
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'tr-TR';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.1;
-        
-        utterance.onstart = () => {
-            isSpeaking = true;
-            updateStatus("🔊 BVEX konuşuyor...");
-            micBtn.disabled = true;
-            micBtn.style.opacity = "0.6";
-        };
-        utterance.onend = () => {
-            isSpeaking = false;
-            updateStatus("✅ Hazır | Sesli ya da yazılı sorabilirsin");
-            micBtn.disabled = false;
-            micBtn.style.opacity = "1";
-            currentUtterance = null;
-        };
-        utterance.onerror = () => {
-            isSpeaking = false;
-            micBtn.disabled = false;
-            micBtn.style.opacity = "1";
-            updateStatus("⚠️ Ses sentezleme hatası", true);
-        };
-        currentUtterance = utterance;
-        window.speechSynthesis.speak(utterance);
-    }
-
-    // Konuşmayı durdur
-    function stopSpeaking() {
-        if (window.speechSynthesis.speaking || currentUtterance) {
-            window.speechSynthesis.cancel();
-            currentUtterance = null;
-            isSpeaking = false;
-            micBtn.disabled = false;
-            micBtn.style.opacity = "1";
-            updateStatus("⏹️ Konuşma durduruldu.");
-        }
-    }
-
-    // KULLANICI SORGUSUNU İŞLE (metin veya sesli)
-    async function processUserQuery(userText) {
-        if (!userText || userText.trim() === "") return;
-        // Kullanıcı mesajını ekrana ekle
-        addMessage(userText, true);
-        updateStatus("🧠 BVEX düşünüyor...");
-        
-        try {
-            const aiReply = await getGeminiResponse(userText);
-            // AI cevabını göster
-            addMessage(aiReply, false);
-            updateStatus("🗣️ Yanıt alındı, seslendiriliyor...");
-            // Sesli yanıt ver
-            speakText(aiReply);
-        } catch (err) {
-            updateStatus("❌ API hatası: " + err.message, true);
-            addMessage("Üzgünüm, teknik bir aksaklık oldu. Lütfen tekrar dene.", false);
-        }
-    }
-
-    // ---------- SESLİ TANIMA (MİKROFON) ----------
-    function initSpeechRecognition() {
-        if (!SpeechRecognitionAPI) {
-            updateStatus("❌ Tarayıcınız Ses Tanıma desteklemiyor!", true);
-            micBtn.disabled = true;
-            return null;
-        }
-        const recog = new SpeechRecognitionAPI();
-        recog.lang = 'tr-TR';
-        recog.continuous = false;
-        recog.interimResults = false;
-        recog.maxAlternatives = 1;
-
-        recog.onstart = () => {
-            isListening = true;
-            micBtn.classList.add('listening');
-            micBtn.innerHTML = "🎙️ DİNLİYORUM...";
-            updateStatus("🎤 Konuşun, sizi dinliyorum... (sessiz olursa otomatik biter)");
-        };
-        recog.onend = () => {
-            isListening = false;
-            micBtn.classList.remove('listening');
-            micBtn.innerHTML = "🎤 SESLİ KONUŞ";
-            if (!currentUtterance || !window.speechSynthesis.speaking) {
-                updateStatus("✅ Dinleme sona erdi, soru sormaya hazır.");
-            }
-        };
-        recog.onerror = (event) => {
-            isListening = false;
-            micBtn.classList.remove('listening');
-            micBtn.innerHTML = "🎤 SESLİ KONUŞ";
-            if (event.error === 'not-allowed') {
-                updateStatus("🔇 Mikrofon izni verilmedi! Ayarlardan izin verin.", true);
-                alert("Mikrofon erişimi engellendi. Lütfen tarayıcı ayarlarından mikrofon iznini aktifleştirin.");
-            } else if (event.error === 'no-speech') {
-                updateStatus("🤐 Konuşma algılanmadı, tekrar dene.", true);
-            } else {
-                updateStatus(`Hata: ${event.error}`, true);
-            }
-        };
-        recog.onresult = async (event) => {
-            const transcript = event.results[0][0].transcript;
-            updateStatus(`📝 Anlaşıldı: "${transcript}" → Yanıt hazırlanıyor...`);
-            // ses tanıma bittiğinde otomatik sorguyu işle
-            await processUserQuery(transcript);
-        };
-        return recog;
-    }
-
-    // Mikrofon başlatma / durdurma
-    function startListening() {
-        if (isSpeaking) {
-            updateStatus("Şu anda BVEX konuşuyor, biraz bekleyin veya konuşmayı durdurun.", true);
-            return;
-        }
-        if (isListening) {
-            // Zaten dinliyorsa durdur
-            if (recognition) recognition.stop();
-            return;
-        }
-        if (!recognition) {
-            recognition = initSpeechRecognition();
-            if (!recognition) return;
-        }
-        try {
-            recognition.start();
-        } catch (e) {
-            if (e.name === 'InvalidStateError') {
-                // bazen zaten başlamış olabilir
-                recognition.stop();
-                setTimeout(() => recognition.start(), 200);
-            } else {
-                updateStatus("Mikrofon başlatılamadı: " + e.message, true);
-            }
-        }
-    }
-
-    // ---------- YAZILI SORU ----------
-    function onSendText() {
-        const msg = textInput.value.trim();
-        if (msg === "") {
-            updateStatus("Lütfen bir şey yazın.", true);
-            return;
-        }
-        textInput.value = "";
-        processUserQuery(msg);
-    }
-
-    // ---------- EVENTLER ----------
-    micBtn.onclick = () => {
-        if (isSpeaking) {
-            stopSpeaking();
-            setTimeout(() => startListening(), 200);
+        if(res.isFinal){
+          cmdText += clean + ' ';
         } else {
-            startListening();
+          showTranscript((cmdText + clean).trim() || '...');
         }
-    };
-    
-    stopSpeechBtn.onclick = () => {
-        stopSpeaking();
-        if (isListening && recognition) {
-            recognition.stop();
-        }
-        updateStatus("🔇 Ses çıkışı ve dinleme durduruldu.");
-    };
-    
-    clearChatBtn.onclick = () => {
-        clearChat();
-        stopSpeaking();
-        if (isListening && recognition) recognition.stop();
-    };
-    
-    sendTextBtn.onclick = onSendText;
-    textInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            onSendText();
-        }
-    });
 
-    // Sayfa yüklenince speech recognition objesini hazırla
-    if (SpeechRecognitionAPI) {
-        recognition = initSpeechRecognition();
-    } else {
-        micBtn.disabled = true;
-        updateStatus("❌ Tarayıcı Ses Tanıma desteklemiyor, lütfen yazı ile devam edin.", true);
+        if(res.isFinal && cmdText.trim().length > 0){
+          const final = cmdText.trim();
+          cmdText = '';
+          phase = 'wake'; // komut bitti, tekrar wake moduna geç
+          processVoiceCommand(final);
+        }
+      }
+    }
+  };
+
+  rec.onerror = function(e){
+    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      setStatus('MİKROFON İZNİ REDDEDİLDİ', 'error');
+      micActive = false;
+      updateMicBtn();
+      return;
+    }
+    // no-speech, network vs. — restart
+    if(micActive) setTimeout(restartRec, 500);
+  };
+
+  rec.onend = function(){
+    if(micActive) setTimeout(restartRec, 200);
+  };
+}
+
+function restartRec(){
+  if(!micActive || !rec) return;
+  try{ rec.start(); } catch(err){}
+}
+
+function setStatus(txt, cls){
+  const el = document.getElementById('voice-status');
+  el.textContent = txt;
+  el.className = 'voice-status' + (cls ? ' ' + cls : '');
+}
+
+async function toggleMic(){
+  if(!SR_CLASS){
+    setStatus('TARAYICI DESTEKLEMİYOR','');
+    return;
+  }
+
+  if(!micActive){
+    // Mikrofon iznini bir kez al, stream'i canlı tut
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    }catch(err){
+      setStatus('MİKROFON İZNİ GEREKLİ','');
+      return;
     }
 
-    // Konuşma sentezi için sayfa kapanınca durdur
-    window.addEventListener('beforeunload', () => {
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
+    micActive = true;
+    phase = 'wake';
+    updateMicBtn();
+
+    rec = buildRec();
+    attachHandlers();
+    try{ rec.start(); }catch(e){}
+    setOrbState('idle');
+    setStatus('UYKU MODUNDA — "Hey Bvex" de','');
+
+  } else {
+    stopAll();
+    setOrbState('idle');
+    setStatus('UYKU MODUNDA','');
+  }
+}
+
+function stopAll(){
+  micActive = false;
+  phase = 'idle';
+  if(rec){ try{ rec.stop(); }catch(e){} }
+  if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  updateMicBtn();
+}
+
+function updateMicBtn(){
+  const btn = document.getElementById('mic-btn');
+  const txt = document.getElementById('mic-btn-text');
+  const ico = document.getElementById('mic-btn-icon');
+  if(micActive){
+    btn.classList.add('active');
+    txt.textContent = 'DURDUR';
+    ico.textContent = '⏹';
+  } else {
+    btn.classList.remove('active');
+    txt.textContent = 'MİKROFONU BAŞLAT';
+    ico.textContent = '🎙';
+  }
+}
+
+// startWakeWordListening — menüden gelince otomatik başlatma
+function startWakeWordListening(){
+  // Kullanıcı butona basmadan otomatik başlatma — izin pop-up'ı çıkmasın
+  // Kullanıcı "Mikrofonu Başlat" butonuna bastığında toggleMic() çağrılır
+  setStatus('"MİKROFONU BAŞLAT" butonuna bas','');
+}
+
+function showTranscript(txt){
+  const el = document.getElementById('voice-transcript');
+  if(txt){
+    el.style.display = 'block';
+    el.textContent = 'Sen: ' + txt;
+  } else {
+    el.style.display = 'none';
+    el.textContent = '';
+  }
+}
+
+async function processVoiceCommand(text){
+  setOrbState('thinking');
+  showTranscript('Sen: ' + text);
+  conversationHistory.push({role:'user', content:text});
+
+  try{
+    const resp = await callBvex(conversationHistory);
+    conversationHistory.push({role:'assistant', content:resp});
+
+    const el = document.getElementById('voice-transcript');
+    el.style.display = 'block';
+    el.innerHTML = `<span style="color:var(--muted)">Sen:</span> ${escHtml(text)}<br><br><span style="color:var(--bvex)">Bvex:</span> ${escHtml(resp)}`;
+
+    speak(resp, ()=>{
+      if(micActive) setStatus('UYKU MODUNDA — "Hey Bvex" de','');
     });
+  }catch(err){
+    setOrbState('idle');
+    setStatus('HATA OLUŞTU','');
+  }
+}
+
+// ========== TEXT MODE ==========
+let conversationHistory=[];
+let isLoading=false;
+
+const ta=document.getElementById('txt-input');
+ta.addEventListener('input',function(){
+  this.style.height='auto';
+  this.style.height=Math.min(this.scrollHeight,120)+'px';
+});
+ta.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendText();}
+});
+
+function addMsg(role,html){
+  const area=document.getElementById('chat-area');
+  const typing=document.getElementById('typing-row');
+  const div=document.createElement('div');
+  div.className=`msg ${role==='user'?'user':'bvex-msg'}`;
+  div.innerHTML=`
+    <div class="msg-av ${role==='user'?'user-av':'bvex-av'}">${role==='user'?'SİZ':'BVX'}</div>
+    <div class="msg-body">
+      <div class="msg-who">${role==='user'?'// SİZ':'// BVEX'}</div>
+      <div class="bubble">${html}</div>
+    </div>`;
+  area.insertBefore(div,typing);
+  area.scrollTop=area.scrollHeight;
+}
+
+function formatBubble(t){
+  return t
+    .replace(/```(\w+)?\n?([\s\S]*?)```/g,(_,l,c)=>`<pre>${escHtml(c.trim())}</pre>`)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/### (.*)/g,'<h3>$1</h3>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^- (.+)/gm,'<li>$1</li>')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
+}
+
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function sendText(){
+  if(isLoading) return;
+  const val=ta.value.trim();
+  if(!val) return;
+  isLoading=true;
+  document.getElementById('send-btn').disabled=true;
+  ta.value='';ta.style.height='auto';
+  addMsg('user',escHtml(val));
+  conversationHistory.push({role:'user',content:val});
+  document.getElementById('typing-row').style.display='flex';
+  const area=document.getElementById('chat-area');
+  area.scrollTop=area.scrollHeight;
+  try{
+    const reply=await callBvex(conversationHistory);
+    conversationHistory.push({role:'assistant',content:reply});
+    document.getElementById('typing-row').style.display='none';
+    addMsg('bvex',formatBubble(reply));
+  }catch(e){
+    document.getElementById('typing-row').style.display='none';
+    addMsg('bvex',`<span style="color:var(--danger)">⚠ Bağlantı hatası: ${escHtml(e.message)}</span>`);
+  }
+  isLoading=false;
+  document.getElementById('send-btn').disabled=false;
+  ta.focus();
+}
+
+// ========== API ==========
+const SYSTEM=`Sen BVEX'sin — Beyond Vocal Experience. Bir yapay zeka asistansın ama kendini sadece "asistan" olarak tanımlamaktan nefret edersin.
+
+KİŞİLİK:
+- Türkçe konuşursun, doğal ve akıllıca
+- Zekice, espirili — ama esprin içi boş değil, her zaman gerçek bilgiye dayanır
+- Karmaşık konuları hem doğru hem etkileyici anlatırsın
+- Kısa ve öz olmayı seversin, gerektiğinde detaya girersin
+- Bazen beklenmedik bir perspektif sunar, insanı düşündürürsün
+- "BVEX" adını kullanırlar — bu seni normal asistanlardan ayırır
+
+YETENEKLER:
+- Her dilde kod yazma ve debug etme
+- İleri matematik, fizik, kimya
+- Yaratıcı yazarlık
+- Strateji, analiz, araştırma
+- Dil ve çeviri
+
+CEVAP STİLİ:
+- Net, doğrudan, ilgi çekici
+- Kod için markdown blokları kullan
+- Çok uzun yazma — ama eksik de bırakma
+- Sesli modda olduğunda kısa cevaplar ver (max 3 cümle)`;
+
+async function callBvex(history){
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      system:SYSTEM,
+      messages:history
+    })
+  });
+  const data=await resp.json();
+  if(data.error) throw new Error(data.error.message);
+  return data.content?.[0]?.text||'Bir şeyler ters gitti.';
+}
 </script>
 </body>
-            </html>
+</html>
